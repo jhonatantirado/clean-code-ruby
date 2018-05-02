@@ -1,13 +1,6 @@
 ﻿module BusinessLayer
 	class Speaker
 		def initialize(firstName, lastName, email, experience, hasBlog, blogUrl, browser, certifications, employer, registrationFee, sessions)
-			@requiredCertifications = 3
-			@requiredYearsOfExperience = 10
-			@minRequiredBrowserVersion = 9
-			@oldTechnologies = ["Cobol", "Punch Cards", "Commodore", "VBScript"]
-			@domains = ["aol.com", "hotmail.com", "prodigy.com", "CompuServe.com"]
-			@employers = ["Microsoft", "Google", "Fog Creek Software", "37Signals"]
-			
 			@firstName = firstName
 			@lastName = lastName
 			@email = email
@@ -135,7 +128,8 @@
 				raise NoSessionsApprovedException.new("No sessions approved.")
 			end
 			
-			self.calculateRegistrationFee()
+			self.RegistrationFee = repository.calculateRegistrationFee(self.Experience)
+			
 			begin
 				speakerId = repository.SaveSpeaker(self)
 			rescue Exception => e
@@ -147,6 +141,7 @@
 		
 		def hasSessionApproved()
 			result = true
+			@oldTechnologies = ["Cobol", "Punch Cards", "Commodore", "VBScript"]
 			enumerator = Sessions.GetEnumerator()
 			while enumerator.MoveNext()
 				session = enumerator.Current
@@ -166,25 +161,19 @@
 		end
 		
 		def meetsMinimunRequirements()
+			@requiredCertifications = 3
+			@requiredYearsOfExperience = 10
+			@minRequiredBrowserVersion = 9
+			
+			@domains = ["aol.com", "hotmail.com", "prodigy.com", "CompuServe.com"]
+			@employers = ["Microsoft", "Google", "Fog Creek Software", "37Signals"]
+			
 			splitted = self.Email.Split('@')
 			emailDomain = splitted[splitted.Length - 1]
 			result = ((self.Experience > @requiredYearsOfExperience or self.HasBlog or self.Certifications.Count() > @requiredCertifications or @employers.Contains(self.Employer) or (not @domains.Contains(emailDomain) and self.Browser.Name != WebBrowser.BrowserName.InternetExplorer and self.Browser.MajorVersion >= @minRequiredBrowserVersion)))
 			return result
 		end
-		
-		def calculateRegistrationFee()
-			if self.Experience <= 1 then
-				self.RegistrationFee = 500
-			elsif self.Experience >= 2 and self.Experience <= 3 then
-				self.RegistrationFee = 250
-			elsif self.Experience >= 4 and self.Experience <= 5 then
-				self.RegistrationFee = 100
-			elsif self.Experience >= 6 and self.Experience <= 9 then
-				self.RegistrationFee = 50
-			else
-				self.RegistrationFee = 0
-			end
-		end
+
 	end	
 		
 	class SpeakerDoesntMeetRequirementsException < Exception
